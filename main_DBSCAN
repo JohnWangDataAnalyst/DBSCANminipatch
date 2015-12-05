@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+import nodeBox
+
+# with Pandas to import CSV to DataFrame, then to Matrix and the normalized data
+def getData():
+    df3 = pd.read_csv('D:\\ZWang\\BigData\\Datasets\\a1_raw.csv')
+    n=df3.shape[1]
+    # get rid of columns we dont need such as class column  and transfer to Matrix
+    data = df3[list(df3.columns.values)[0:(n-2)]].as_matrix().astype("float", copy=False)
+
+    # Normalize the data
+    stscaler = StandardScaler().fit(data)
+    data = stscaler.transform(data)
+    return data
+
+def main():
+    # get data ready the normalized matrix data
+    Data= getData()
+    #  get row number
+    rowNum= Data.shape[0]
+    #print(rowNum)
+    #  distance considering in the neighbor
+    eps= 1.5
+    # assign a number of nodes to each node to see if they are its neighbor
+    sampleSize=800
+    #get neigbor index for each node and put it in nodeCluster structure and collect all nodeClusters into nodeBox Structure
+    dbc= nodeBox.nodeBox(Data, rowNum, sampleSize, eps)
+    #print(dbc.box[110].listSample)
+    
+    minNeigh=10
+
+    # based on nodeBox, get clusters ready using method clusterDB
+    dbc.clusterDB(rowNum, minNeigh)
+
+
+    #dbc.getClusterNameList()
+
+    #print all cluster names
+    print(len(dbc.getClusterNameList()))
+    print(dbc.getClusterNameList())
+    print(dbc.clusterList[3].member)
+    print(dbc.clusterList[4].member)
+    #print(dbc.visitedList)
+
+main()
