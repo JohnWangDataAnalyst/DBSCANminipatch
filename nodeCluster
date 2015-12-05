@@ -1,0 +1,27 @@
+import numpy as np
+
+
+class nodeCluster(object):
+    
+    listSample=[]
+
+    
+    def __init__(self, indexCurrentNode, listSample):
+        self.listSample = listSample
+        self.indexCurrentNode = indexCurrentNode
+    def setNodesSample(self, listSample):
+        self.listSample = listSample
+
+    def setNode(self, indexCurrentNode):
+        self.indexCurrentNode = indexCurrentNode
+
+    def getTempNeighbor(self, D, eps):
+        neighborTempList=[]
+        for i in range(len(self.listSample)):
+            if np.linalg.norm(np.subtract(D[[self.indexCurrentNode],], D[[self.listSample[i]],])) <= eps:
+                neighborTempList.append(self.listSample[i])
+        return neighborTempList
+
+
+
+
