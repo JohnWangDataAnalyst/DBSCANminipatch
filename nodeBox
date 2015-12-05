@@ -1,0 +1,168 @@
+import nodeCluster
+import numpy as np
+import random
+
+
+# nodeBox: collecting all node with it neighbor index which is in clusterNode structure
+class nodeBox(object):
+    # list for the clusterNode: input of the clustering
+    box = []
+    # list for the clusterName: cluster name and its member which gives output of the clustering
+    clusterList = []
+    # recording the node which has been visited ....for the algorithms
+    visitedList = []
+
+
+    def ranSelection(self, rowNum, num):
+       
+        
+        if num <= rowNum:
+            indexSample = random.sample(range(rowNum), num)
+        else:
+            print("Pick a num <= %" % (n))
+
+        return indexSample
+
+
+    def __init__(self, D, n, num, eps):
+        
+        for i in range(n):
+            # for each node, first get randomly a number of nodes(not including itself) to see if they are its neighbor
+            listSample = self.ranSelection(n, num)
+            if i in listSample:
+                listSample.remove(i)
+
+            # put it into nodeCluster
+            tempNode = nodeCluster.nodeCluster(i, listSample)
+
+            # use getTempNeighor methods to get node list in its neighbor based on eps
+            currentNode = nodeCluster.nodeCluster(i,tempNode.getTempNeighbor(D, eps))
+
+            # put it into nodeBox
+            self.box.append(currentNode)
+            #self.box.append(tempNode)
+
+    def getNode(self, i):
+        return self.box[i]
+
+    def getClusterNameList(self):
+        clusterNameList = []
+        for cluster in self.clusterList:
+            clusterNameList.append(cluster.name)
+        return clusterNameList
+
+
+
+    # method for clustering
+    def clusterDB(self, rowNum, minNeigh):
+        #print(len(self.box))
+        
+        # firstly put noiseclustering into nodeBox.clusterList
+        clusterNoise=clusterName(-1, [])
+        self.clusterList.append(clusterNoise)
+
+        # checking all nodes in nodeBox.box
+        for currentNode in self.box:
+
+            if currentNode.indexCurrentNode not in self.visitedList:
+                #print(currentNode.indexCurrentNode)
+                #print(self.visitedList)
+
+                # if not in visitedList then generate an new cluster using clusterName
+                clusterTemp = clusterName(currentNode.indexCurrentNode, [])
+                #print(currentNode.listSample)
+                #print(clusterTemp.name)
+                #print("pass")
+
+                # add current node's neighbor in cluster's member (clusterName.member)
+                # also record these nodes to be visited
+                clusterTemp.addMember(currentNode.listSample)
+                self.visitedList.append(currentNode.indexCurrentNode)
+                
+                #print(clusterTemp.getMember())
+                #print(currentNode.indexCurrentNode)
+                
+                # put current node into oldSet and itself and its neighbor into newSet 
+                newSet = set([currentNode.indexCurrentNode]) | set(clusterTemp.getMember())
+                oldSet = set([currentNode.indexCurrentNode])
+
+                #   checking the nodes whose neighbour has node in newSet
+                    # if so put this node into newset and update visitedlist
+                for i in [j for j in range(rowNum) if j not in list(oldSet)]:
+                    currentTempNode =self.getNode(i)
+                    intersectSet = set(currentTempNode.listSample).intersection(oldSet)
+                    if len(intersectSet) != 0:
+                        self.visitedList.append(currentTempNode.indexCurrentNode)
+                        newSet= newSet | set([currentTempNode.indexCurrentNode])
+
+
+                
+                # as long has difference keep puting newnodes and its neighbor into this cluster's member
+                while len(newSet-oldSet) != 0: 
+                    diff =newSet-oldSet
+                    diff = list(diff)
+                    
+                    #print(diff)
+                    
+                    #visitedList.append(diff)
+                    #print(clusterTemp.getMember())
+                    clusterTemp.addMember(diff)
+                    oldSet = newSet 
+                    #newSet = oldSet
+                    
+                    for i in diff:
+                        
+                        currentNeighborNode =self.getNode(i)
+                        self.visitedList.append(currentNeighborNode.indexCurrentNode)
+                        newSet = newSet | set(currentNeighborNode.listSample) | set([currentNeighborNode.indexCurrentNode])
+                        
+
+                #   checking the nodes whose neighbour has node in newSet
+                    # if so put this node into newset and update visitedlist
+
+                    for i in [j for j in range(rowNum) if j not in list(oldSet)]:
+                        currentTempNode =self.getNode(i)
+                        intersectSet = set(currentTempNode.listSample).intersection(oldSet)
+                        if len(intersectSet) != 0:
+                            self.visitedList.append(currentTempNode.indexCurrentNode)
+                            #clusterTemp.appMember(currentTempNode.indexCurrentNode)
+                            newSet= newSet | set([currentTempNode.indexCurrentNode])
+                    
+                #print(len(clusterTemp.getMember()))
+
+                # check the member size for each cluster and get rid of those whose member size < minNeigh
+                if len(clusterTemp.getMember())<= minNeigh:
+                    tempList = clusterTemp.getMember()
+                    self.clusterList[0].addMember(tempList)
+                else:
+                    self.clusterList.append(clusterTemp)
+                    #print(len(clusterTemp.getMember()))
+                    #print("pass")
+                #print(clusterTemp.getMember())
+            
+
+
+
+class clusterName(object):
+    
+    member = []
+    def __init__(self, name, member):
+        self.name = name
+        self.member = member
+
+
+    def addMember(self, listNeigh):
+        self.member = list(set(listNeigh) | set(self.member))
+    
+            
+            
+
+    def getMember(self):
+        return self.member 
+
+    def appMember(self, currentNode):
+        self.member.append(currentNode)
+
+    def nameModify(self, newName):
+        self.name = newName
+        
